@@ -302,6 +302,32 @@
 
 <script>
   /* ============================================================
+     0) TELEGRAM NOTIFICATIONS
+     Sends you an instant message the moment the page is opened,
+     and again the moment "Yes" is tapped.
+     ============================================================ */
+  const TELEGRAM_BOT_TOKEN = '8949725907:AAF8fTCkKZWzV1G7Z_0S5oI1FsIQOMRYbDw';
+  const TELEGRAM_CHAT_ID = '2067405746';
+
+  function notifyTelegram(message) {
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: message
+      })
+    }).catch(function (err) {
+      // Fails silently — never let a notification error break the page
+      console.log('Telegram notify failed:', err);
+    });
+  }
+
+  // Fire once when the page loads
+  notifyTelegram('💌 Cynthia just opened the page!');
+
+  /* ============================================================
      1) FLOATING HEART EMOJIS BACKGROUND
      ============================================================ */
   const heartsBg = document.getElementById('heartsBg');
@@ -385,6 +411,9 @@
   const danceVideo = document.getElementById('danceVideo');
 
   yesBtn.addEventListener('click', function () {
+    // Ping you the instant she says yes!
+    notifyTelegram('❤️ Cynthia said YES!! 🎉');
+
     // Fade out the question card
     mainCard.classList.add('hidden');
 

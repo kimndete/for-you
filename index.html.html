@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cynthia, Will You Be My Girlfriend? 💗</title>
+
+<style>
+  /* ---------- RESET & BASE ---------- */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden; /* prevent horizontal scrollbars from the dodging button */
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+    background: linear-gradient(135deg, #ffdde1, #ffe6ee, #ffd1dc);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* ---------- FLOATING HEARTS BACKGROUND ---------- */
+  .hearts-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .heart {
+    position: absolute;
+    bottom: -10%;
+    font-size: 1.5rem;
+    opacity: 0.6;
+    animation: floatUp linear infinite;
+  }
+
+  @keyframes floatUp {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 0.7;
+    }
+    100% {
+      transform: translateY(-110vh) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  /* ---------- MAIN CARD ---------- */
+  .card {
+    position: relative;
+    z-index: 2;
+    background: #fff;
+    border-radius: 24px;
+    padding: 28px 24px 34px;
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(255, 105, 135, 0.35);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .card.hidden {
+    opacity: 0;
+    transform: scale(0.9);
+    pointer-events: none;
+    position: absolute; /* remove from flow once faded */
+  }
+
+  /* Placeholder gif/image area at top of card */
+  .gif-placeholder {
+    width: 100%;
+    height: 200px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #ffc9d8, #ff9fb2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  /* 
+    ============================================
+    REPLACE THIS with your own <img> or <video> tag / gif URL!
+    Example:
+    <img src="your-cute-gif.gif" alt="cute gif" style="width:100%;height:100%;object-fit:cover;">
+    ============================================
+  */
+  .gif-placeholder img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    color: #d6336c;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  p.subtitle {
+    color: #a8517a;
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+  }
+
+  /* ---------- BUTTONS ---------- */
+  .btn-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+
+  .btn {
+    border: none;
+    outline: none;
+    padding: 14px 30px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .btn:active {
+    transform: scale(0.95);
+  }
+
+  .btn-yes {
+    background: #4CAF50;
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(76, 175, 80, 0.4);
+  }
+
+  .btn-yes:hover {
+    background: #43a047;
+  }
+
+  .btn-no {
+    background: #f44336;
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(244, 67, 54, 0.4);
+    /* Starts as a NORMAL inline button, sitting next to "Yes".
+       It only becomes position:fixed (movable anywhere on screen)
+       the moment the user first hovers/touches it. See JS below. */
+    position: static;
+    z-index: 10;
+  }
+
+  /* Applied via JS the first time the button needs to dodge */
+  .btn-no.dodging {
+    position: fixed;
+  }
+
+  /* ---------- VIDEO SECTION (hidden until Yes is clicked) ---------- */
+  .video-section {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none; /* toggled to flex via JS */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 5;
+    text-align: center;
+  }
+
+  .video-section.show {
+    display: flex;
+  }
+
+  .video-section h2 {
+    color: #d6336c;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    animation: pop 0.6s ease;
+  }
+
+  @keyframes pop {
+    0%   { transform: scale(0.7); opacity: 0; }
+    70%  { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+
+  .video-wrapper {
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 9 / 16; /* portrait-friendly for mobile dance videos */
+    max-height: 75vh;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(255, 105, 135, 0.45);
+    background: #000;
+  }
+
+  .video-wrapper video,
+  .video-wrapper iframe {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: none;
+  }
+
+  /* Small screens tweak */
+  @media (max-width: 360px) {
+    h1 { font-size: 1.4rem; }
+    .btn { padding: 12px 24px; font-size: 0.95rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Floating decorative hearts (purely visual, generated by JS) -->
+<div class="hearts-bg" id="heartsBg"></div>
+
+<!-- ================= MAIN QUESTION CARD ================= -->
+<div class="card" id="mainCard">
+  <div class="gif-placeholder">
+    <!--
+      ============================================
+      PASTE YOUR OWN GIF / IMAGE HERE (replace the emoji below)
+      e.g. <img src="cute-couple.gif" alt="cute gif">
+      ============================================
+    -->
+    💕
+  </div>
+
+  <h1>Cynthia, will you be my girlfriend?</h1>
+  <p class="subtitle">Think carefully... there's only one right answer 😉</p>
+
+  <div class="btn-row">
+    <button class="btn btn-yes" id="yesBtn">Yes 💚</button>
+    <button class="btn btn-no" id="noBtn">No</button>
+  </div>
+</div>
+
+<!-- ================= VIDEO SECTION (shown after Yes) ================= -->
+<div class="video-section" id="videoSection">
+  <h2>Yay! Best decision ever! ❤️</h2>
+  <div class="video-wrapper">
+    <!--
+      ============================================
+      REPLACE THE src BELOW WITH YOUR OWN DANCING VIDEO LINK!
+      Currently using a public sample MP4 as a placeholder.
+      ============================================
+    -->
+    <!--
+      ============================================
+      GOOGLE DRIVE VIDEO EMBED
+      Using your file's ID from:
+      https://drive.google.com/file/d/15AOXeKmNo-L8vHlbPCwIQwjT_bIP3cW3/view
+
+      IMPORTANT: In Google Drive, right-click the file -> Share ->
+      change access to "Anyone with the link" (Viewer), or this won't play.
+
+      To swap in a different video later, just replace the ID below
+      (the long string between /d/ and /view in your Drive link).
+      ============================================
+    -->
+    <iframe
+      id="danceVideo"
+      src="https://drive.google.com/file/d/15AOXeKmNo-L8vHlbPCwIQwjT_bIP3cW3/preview"
+      allow="autoplay"
+      allowfullscreen
+      frameborder="0">
+    </iframe>
+  </div>
+</div>
+
+<script>
+  /* ============================================================
+     0) DRIVE EMBED NOTE
+     Google Drive's iframe player is sandboxed, so JS can't force-play
+     it automatically the way a normal <video> tag can. Cynthia will
+     see a native Drive player and just taps the play button once —
+     still feels instant and clean on mobile.
+     ============================================================ */
+</script>
+
+<script>
+  /* ============================================================
+     1) FLOATING HEART EMOJIS BACKGROUND
+     ============================================================ */
+  const heartsBg = document.getElementById('heartsBg');
+  const heartEmojis = ['💗', '💖', '💕', '❤️', '💓'];
+  const totalHearts = 18;
+
+  for (let i = 0; i < totalHearts; i++) {
+    const heart = document.createElement('span');
+    heart.className = 'heart';
+    heart.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+    heart.style.left = Math.random() * 100 + '%';
+    heart.style.fontSize = (1 + Math.random() * 1.5) + 'rem';
+    heart.style.animationDuration = (6 + Math.random() * 8) + 's';
+    heart.style.animationDelay = (Math.random() * 8) + 's';
+    heartsBg.appendChild(heart);
+  }
+
+  /* ============================================================
+     2) THE DODGING "NO" BUTTON (mobile + desktop friendly)
+     ============================================================ */
+  const noBtn = document.getElementById('noBtn');
+
+  function moveNoButton() {
+    // First time this runs, switch the button from static (in the row)
+    // to fixed (free to move anywhere on the viewport)
+    if (!noBtn.classList.contains('dodging')) {
+      noBtn.classList.add('dodging');
+    }
+
+    // Get button's current size so it stays fully on-screen
+    const btnRect = noBtn.getBoundingClientRect();
+    const btnWidth = btnRect.width;
+    const btnHeight = btnRect.height;
+
+    // Use viewport dimensions (visualViewport is more accurate on mobile
+    // because it accounts for on-screen keyboards / browser UI)
+    const viewportWidth = window.visualViewport
+      ? window.visualViewport.width
+      : window.innerWidth;
+    const viewportHeight = window.visualViewport
+      ? window.visualViewport.height
+      : window.innerHeight;
+
+    // Small padding so the button never touches the very edge
+    const padding = 12;
+
+    // Calculate safe random boundaries
+    const maxX = viewportWidth - btnWidth - padding;
+    const maxY = viewportHeight - btnHeight - padding;
+
+    const randomX = Math.max(padding, Math.random() * maxX);
+    const randomY = Math.max(padding, Math.random() * maxY);
+
+    // Fixed positioning means these coordinates are relative to viewport,
+    // guaranteeing no extra scrollbars are created.
+    noBtn.style.left = randomX + 'px';
+    noBtn.style.top = randomY + 'px';
+  }
+
+  // Desktop: dodge on hover
+  noBtn.addEventListener('mouseover', moveNoButton);
+
+  // Mobile: dodge on touch (fires before a "click" can register)
+  noBtn.addEventListener('touchstart', function (e) {
+    e.preventDefault(); // stop the touch from also firing a click
+    moveNoButton();
+  }, { passive: false });
+
+  // Extra safety net: if somehow clicked/tapped anyway, still dodge
+  noBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    moveNoButton();
+  });
+
+  /* ============================================================
+     3) THE "YES" BUTTON ACTION
+     ============================================================ */
+  const yesBtn = document.getElementById('yesBtn');
+  const mainCard = document.getElementById('mainCard');
+  const videoSection = document.getElementById('videoSection');
+  const danceVideo = document.getElementById('danceVideo');
+
+  yesBtn.addEventListener('click', function () {
+    // Fade out the question card
+    mainCard.classList.add('hidden');
+
+    // After the fade transition, reveal the video section
+    setTimeout(function () {
+      videoSection.classList.add('show');
+      // Note: Google Drive's iframe embed is sandboxed, so we can't
+      // force autoplay via JS here. Cynthia just taps play once
+      // on the native Drive player controls.
+    }, 500);
+  });
+
+  /* ============================================================
+     4) Recalculate No button position if the window is resized
+        (e.g. phone rotated) so it never gets stuck off-screen
+     ============================================================ */
+  window.addEventListener('resize', function () {
+    // Only reposition if it has already been moved once
+    if (noBtn.style.left) {
+      moveNoButton();
+    }
+  });
+</script>
+
+</body>
+</html>
